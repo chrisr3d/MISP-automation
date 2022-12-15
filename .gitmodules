@@ -1,0 +1,3 @@
+[submodule "PyMISP"]
+	path = PyMISP
+	url = https://github.com/MISP/PyMISP
