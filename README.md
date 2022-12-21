@@ -45,6 +45,12 @@ pip3 install -e .
 pip3 install python-magic, lief, pydeep
 ```
 
+### Installation of PyTaxonomies
+
+```bash
+pip3 install PyTaxonomies/
+```
+
 ## Usage
 
 ```bash
