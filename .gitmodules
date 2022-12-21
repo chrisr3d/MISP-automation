@@ -1,3 +1,6 @@
 [submodule "PyMISP"]
 	path = PyMISP
 	url = https://github.com/MISP/PyMISP
+[submodule "PyTaxonomies"]
+	path = PyTaxonomies
+	url = https://github.com/MISP/PyTaxonomies.git
