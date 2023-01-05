@@ -1,6 +1,9 @@
 [submodule "PyMISP"]
 	path = PyMISP
-	url = https://github.com/MISP/PyMISP
+	url = https://github.com/MISP/PyMISP.git
 [submodule "PyTaxonomies"]
 	path = PyTaxonomies
 	url = https://github.com/MISP/PyTaxonomies.git
+[submodule "PyMISPGalaxies"]
+	path = PyMISPGalaxies
+	url = https://github.com/MISP/PyMISPGalaxies.git
