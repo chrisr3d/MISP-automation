@@ -41,8 +41,11 @@ pip3 install notebook
 cd PyMISP
 pip3 install -e .
 
+# To make sure the package required for pydeep is installed
+sudo apt-get install -y libfuzzy-dev
+
 # In order to be able to use the additional PyMISP helpers
-pip3 install python-magic, lief, pydeep
+pip3 install python-magic, lief, git+https://github.com/kbandla/pydeep.git
 ```
 
 ### Installation of PyTaxonomies
