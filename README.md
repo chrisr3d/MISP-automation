@@ -46,7 +46,7 @@ popd
 sudo apt-get install -y libfuzzy-dev
 
 # In order to be able to use the additional PyMISP helpers
-pip3 install python-magic, lief, git+https://github.com/kbandla/pydeep.git
+pip3 install python-magic lief git+https://github.com/kbandla/pydeep.git
 ```
 
 ### Installation of PyTaxonomies
