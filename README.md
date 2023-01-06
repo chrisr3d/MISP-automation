@@ -38,8 +38,9 @@ pip3 install notebook
 ### Installation of PyMISP
 
 ```bash
-cd PyMISP
+pushd PyMISP
 pip3 install -e .
+popd
 
 # To make sure the package required for pydeep is installed
 sudo apt-get install -y libfuzzy-dev
@@ -51,7 +52,17 @@ pip3 install python-magic, lief, git+https://github.com/kbandla/pydeep.git
 ### Installation of PyTaxonomies
 
 ```bash
-pip3 install PyTaxonomies/
+pushd PyTaxonomies
+pip3 install .
+popd
+```
+
+### Installation of PyMISPGalaxies
+
+```bash
+pushd PyMISPGalaxies
+pip3 install .
+popd
 ```
 
 ## Usage
