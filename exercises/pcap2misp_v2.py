@@ -81,7 +81,6 @@ def parse_pcaps(args):
         try:
             key, value = parse_pcap_info_line(decoded)
         except ValueError:
-            print(parse_pcap_info_line(decoded))
             continue
         if key not in PCAP_METADATA_OBJECT_MAPPING:
             continue
