@@ -16,18 +16,13 @@ layer7_protocols = (
     'dhcp', 'dns', 'ftp', 'http', 'ntp', 'smtp', 'snmp', 'ssdp', 'tftp'
 )
 
-CONNECTION_OBJECT_MAPPING = (
-    {'type': 'ip-src', 'object_relation': 'ip-src'},
-    {'type': 'ip-dst', 'object_relation': 'ip-dst'},
-    {'type': 'port', 'object_relation': 'src-port'},
-    {'type': 'port', 'object_relation': 'dst-port'}
-)
+CONNECTION_OBJECT_RELATIONS = ('ip-src', 'ip-dst', 'src-port', 'dst-port')
 
 
 def define_command(input_file: Path, filters: tuple) -> str:
     param = '-o tcp.relative_sequence_numbers:FALSE -E separator="|"'
     filters_cmd = ' -e '.join(filters)
-    tshark = f'tshark -T fields {param} -e {filters_cmd} -Y "!arp"'
+    tshark = f'tshark -T fields {param} -e {filters_cmd} -Y "!(arp || dhcp)"'
     return f'{tshark} -r {input_file}'
 
 
@@ -76,18 +71,14 @@ def parse_pcaps(args):
         if timestamp < connections[key]['first_seen']:
             connections[key]['first_seen'] = timestamp
         connections[key]['counter'] += 1
-    for connection, values in connections.items():
-        print(connection, values['counter'])
 
     # Once we've processed the packets and grouped what had to be grouped,
     # we can now build the MISP `network-connection` objects
     for connection, values in connections.items():
         misp_object = MISPObject('network-connection')
-        for value, mapping in zip(connection[:4], CONNECTION_OBJECT_MAPPING):
+        for value, relation in zip(connection[:4], CONNECTION_OBJECT_RELATIONS):
             if value:
-                attribute = {'value': value}
-                attribute.update(mapping)
-                misp_object.add_attribute(**attribute)
+                misp_object.add_attribute(relation, value)
         for protocol in connection[4:]:
             layer = 3 if protocol in layer3_protocols else 4 if protocol in layer4_protocols else 7
             misp_object.add_attribute(f'layer{layer}-protocol', protocol.upper())
