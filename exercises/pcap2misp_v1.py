@@ -35,7 +35,7 @@ def handle_protocols(frame_protocols: str) -> list:
                 protocol_key.append(protocol)
                 break
     return protocol_key
-    
+
 
 def parse_pcaps(args):
     
@@ -46,6 +46,8 @@ def parse_pcaps(args):
         'ip.dst',
         'tcp.srcport',
         'tcp.dstport',
+        'udp.srcport',
+        'udp.dstport',
         'frame.protocols'
     )
 
@@ -53,15 +55,22 @@ def parse_pcaps(args):
     misp_event = MISPEvent()
     misp_event.info = f'PCAP parsing of the file {args.input}'
     cmd = define_command(args.input, filters)
-    # We call the terminal command
+
+    # We call the tshark command
+    cmd = define_command(args.input, filters)
     proc = subprocess.Popen(
         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
 
-    # We read the results of the terminal command on the stdout channel
+    # We read the results of the command on the stdout channel
     for line in proc.stdout.readlines():
-        timestamp, ip_src, ip_dst, src_port, dst_port, frame_protocols = line.decode().strip('\n').split('|')
-        key = (ip_src, ip_dst, src_port, dst_port, *handle_protocols(frame_protocols))
+        timestamp, ip_src, ip_dst, ts_port, td_port, us_port, ud_port, frame_protocols = line.decode().strip('\n').split('|')
+        key = (
+            ip_src, ip_dst,
+            ts_port if ts_port else us_port,
+            td_port if td_port else ud_port,
+            *handle_protocols(frame_protocols)
+        )
         if key not in connections:
             connections[key] = {
                 'first_seen': float('inf'),
@@ -97,7 +106,8 @@ def parse_pcaps(args):
             }
         )
         misp_event.add_object(misp_object)
-    with open(args.outputpath / f"{'.'.join(args.input.name.split('.')[:-1])}.misp.json", 'wt', encoding='utf-8') as f:
+    output_filename = f"{'.'.join(args.input.name.split('.')[:-1])}.v1.misp.json"
+    with open(args.outputpath / output_filename, 'wt', encoding='utf-8') as f:
         f.write(misp_event.to_json(indent=4))
 
 
