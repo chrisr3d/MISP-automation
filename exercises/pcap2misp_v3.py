@@ -130,7 +130,7 @@ def parse_pcaps(args):
             for relation, values in zip(DNS_RECORDS_OBJECT_RELATIONS, dns[1:]):
                 if values:
                     if ',' in values:
-                        for value in values:
+                        for value in values.split(','):
                             dns_record.add_attribute(relation, value)
                     else:
                         dns_record.add_attribute(relation, values)
