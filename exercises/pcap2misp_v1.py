@@ -80,28 +80,15 @@ def parse_pcaps(args):
     # Once we've processed the packets and grouped what had to be grouped,
     # we can now build the MISP `network-connection` objects
     for connection, values in connections.items():
-        misp_object = MISPObject('network-connection')
+        misp_object = misp_event.add_object(name='network-connection')
         for value, relation in zip(connection[:4], CONNECTION_OBJECT_RELATIONS):
             if value:
                 misp_object.add_attribute(relation, value)
         for protocol in connection[4:]:
             layer = 3 if protocol in layer3_protocols else 4 if protocol in layer4_protocols else 7
             misp_object.add_attribute(f'layer{layer}-protocol', protocol.upper())
-        misp_object.add_attribute(
-            **{
-                'type': 'datetime',
-                'object_relation': 'first-packet-seen',
-                'value': values['first_seen']
-            }
-        )
-        misp_object.add_attribute(
-            **{
-                'type': 'counter',
-                'object_relation': 'count',
-                'value': values['counter']
-            }
-        )
-        misp_event.add_object(misp_object)
+        misp_object.add_attribute('first-packet-seen', values['first_seen'])
+        misp_object.add_attribute('count', values['counter'])
     output_filename = f"{'.'.join(args.input.name.split('.')[:-1])}.v1.misp.json"
     with open(args.outputpath / output_filename, 'wt', encoding='utf-8') as f:
         f.write(misp_event.to_json(indent=4))
