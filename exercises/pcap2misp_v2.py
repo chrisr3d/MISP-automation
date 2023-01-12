@@ -18,6 +18,13 @@ layer7_protocols = (
     'dhcp', 'dns', 'ftp', 'http', 'ntp', 'smtp', 'snmp', 'ssdp', 'tftp'
 )
 
+# Tshark filters
+standard_filters = (
+    'frame.time_epoch', 'ip.src', 'ip.dst', 'tcp.srcport', 'tcp.dstport',
+    'udp.srcport', 'udp.dstport', 'frame.protocols'
+)
+
+# MISP object relations lists and mappings
 CONNECTION_OBJECT_RELATIONS = ('ip-src', 'ip-dst', 'src-port', 'dst-port')
 PCAP_METADATA_OBJECT_MAPPING = {
     'Capture length': 'capture-length',
@@ -53,18 +60,6 @@ def parse_pcap_info_line(line: str) -> tuple:
 
 def parse_pcaps(args):
     
-    # Filters that might change with potential additions to the script
-    filters = (
-        'frame.time_epoch',
-        'ip.src',
-        'ip.dst',
-        'tcp.srcport',
-        'tcp.dstport',
-        'udp.srcport',
-        'udp.dstport',
-        'frame.protocols'
-    )
-
     connections = {}
     misp_event = MISPEvent()
     misp_event.info = f'PCAP parsing of the file {args.input}'
@@ -95,19 +90,21 @@ def parse_pcaps(args):
     misp_event.add_object(pcap_object)
 
     # We call the tshark command
-    cmd = define_command(args.input, filters)
+    cmd = define_command(args.input, standard_filters)
     proc = subprocess.Popen(
         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
 
     # We read the results of the tshark command on the stdout channel
     for line in proc.stdout.readlines():
-        timestamp, ip_src, ip_dst, ts_port, td_port, us_port, ud_port, frame_protocols = line.decode().strip('\n').split('|')
+        timestamp, ip_src, ip_dst, ts_port, td_port, us_port, ud_port, protocols = line.decode().strip('\n').split('|')
+
+        # We store the connection information
         key = (
             ip_src, ip_dst,
             ts_port if ts_port else us_port,
             td_port if td_port else ud_port,
-            *handle_protocols(frame_protocols)
+            *handle_protocols(protocols)
         )
         if key not in connections:
             connections[key] = {
@@ -155,7 +152,7 @@ if __name__ == '__main__':
     
     parser.add_argument('-i', '--input', required=True, help='PCAP input files to parse')
     parser.add_argument('-o', '--outputpath', default=default_path, help='Output path to store the MISP JSON format results')
-    
+
     args = parser.parse_args()
     args.input = Path(args.input).resolve()
     if not isinstance(args.outputpath, Path):
