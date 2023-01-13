@@ -31,7 +31,8 @@ dns_filters = (
 )
 http_filters = (
     'http', 'http.request.method', 'http.host', 'http.content_type',
-    'http.cookie', 'http.referer', 'http.request.uri', 'http.user_agent'
+    'http.cookie', 'http.referer', 'http.request.full_uri', 'http.request.uri',
+    'http.user_agent'
 )
 
 # MISP object relations lists and mappings
@@ -41,7 +42,8 @@ DNS_RECORDS_OBJECT_RELATIONS = (
     'ns-record', 'ptr-record', 'soa-record', 'spf-record', 'srv-record'
 )
 HTTP_REQUEST_OBJECT_RELATIONS = (
-    'method', 'host', 'content-type', 'cookie', 'referer', 'uri', 'user-agent'
+    'method', 'host', 'content-type', 'cookie', 'referer', 'url', 'uri',
+    'user-agent'
 )
 PCAP_METADATA_OBJECT_MAPPING = {
     'Capture length': 'capture-length',
