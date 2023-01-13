@@ -182,6 +182,7 @@ def parse_pcaps(args):
     output_filename = f"{'.'.join(args.input.name.split('.')[:-1])}.v4.misp.json"
     with open(args.outputpath / output_filename, 'wt', encoding='utf-8') as f:
         f.write(misp_event.to_json(indent=4))
+    print(f'{args.input} successfully parsed - MISP format results extracted in {args.outputpath / output_filename}')
 
 
 if __name__ == '__main__':
