@@ -1,0 +1,6 @@
+value|expanded|description
+topic|Topic|Topic associated with the materials tagged
+motivation|Motivation|Motivation with the materials tagged
+structure|Structure|Structure of the materials tagged
+service|Service|Information related to an Dark-Web service
+content|Content|Identifiable entities and information contained in a Dark-Web service
