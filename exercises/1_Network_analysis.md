@@ -54,27 +54,35 @@ ls -1 data/*.pcap | parallel 'tshark -T fields -e _ws.col.Protocol -r {}' | sort
 #### Extracting ISN
 
 ```bash
-tshark -n -T fields -e frame.time_epoch -e tcp.seq -Y 'tcp' -r data/2021-08-19-traffic-analysis-exercise.pcap
+tshark -n -T fields -e frame.time_epoch -e tcp.seq -Y 'tcp'\
+-r data/2024-01-30-DarkGate-infection-traffic.pcap
 ```
 
 #### Displaying the results
 
 ```bash
-tshark -n -T fields -e frame.time_epoch -e tcp.seq -Y 'tcp' -r data/2021-08-19-traffic-analysis-exercise.pcap -o tcp.relative_sequence_numbers:FALSE | awk '{print $1"\t"$2}' | gnuplot -p -e 'set title "ISN"; plot "/dev/stdin" using :2 with points pointtype 0'
+tshark -n -T fields -e frame.time_epoch -e tcp.seq -Y 'tcp' \
+-r data/2024-01-30-DarkGate-infection-traffic.pcap \
+-o tcp.relative_sequence_numbers:FALSE | awk '{print $1"\t"$2}' | \
+gnuplot -p -e 'set title "ISN"; plot "/dev/stdin" using :2 with points pointtype 0'
 
-ls -1 data/*.pcap | parallel 'tshark -n -T fields -e frame.time_epoch -e tcp.seq -Y "tcp" -r {} -o tcp.relative_sequence_numbers:FALSE' | awk '{print $1"\t"$2}' | gnuplot -p -e 'set title "ISN"; plot "/dev/stdin" using :2 with points pointtype 0'
+ls -1 data/*.pcap | parallel 'tshark -n -T fields -e frame.time_epoch -e tcp.seq \
+-Y "tcp" -r {} -o tcp.relative_sequence_numbers:FALSE' | awk '{print $1"\t"$2}' | \
+gnuplot -p -e 'set title "ISN"; plot "/dev/stdin" using :2 with points pointtype 0'
 ```
 
 #### Extract the query name of all DNS requests
 
 ```bash
-ls -1 data/*.pcap | parallel 'tshark -Tfields -e dns.qry.name -Y "dns" -r {}' | sort | uniq -c | sort -rn
+ls -1 data/*.pcap | parallel 'tshark -Tfields -e dns.qry.name -Y "dns" -r {}' \
+| sort | uniq -c | sort -rn
 ```
 
 #### Extract user-agent headers from IP pakets
 
 ```bash
-ls -1 data/*.pcap| parallel 'tshark -E header=yes -E separator=, -Tfields -e http.user_agent -r {}' | grep -v "^$"
+ls -1 data/*.pcap| parallel 'tshark -E header=yes -E separator=, \
+-Tfields -e http.user_agent -r {}' | grep -v "^$" | sort | uniq
 ```
 
 ### Non exhaustive list of fields that might be interesting
