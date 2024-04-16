@@ -1,0 +1,85 @@
+predicate|value|expanded|descrption
+topic|drugs-narcotics|drugsNarcotics|Illegal drugs/chemical compounds for consumption/ingestion - either via blanket unlawfulness (e.g. proscribed drugs) or via unlawful access (e.g. prescription-only/restricted medications sold without lawful accessibility).
+topic|electronics|electronics|Electronics and high tech materials, described or to sell for example.
+topic|finance|finance|Any monetary/currency/exchangeable materials. Includes carding, Paypal etc.
+topic|finance-crypto|cryptoFinance|Any monetary/currency/exchangeable materials based on cryptocurrencies. Includes Bitcoin, Litecoin etc.
+topic|credit-card|creditCard|Credit cards and payments materials
+topic|cash-in|cashIn|Buying parts of assets, conversion from liquid assets, currency, etc.
+topic|cash-out|cashOut|Selling parts of assets, conversion to liquid assets, currency, etc.
+topic|escrow|escrow|Third party keeping assets in behalf of two other parties making a transactions.
+topic|hacking|hacking|Materials relating to the illegal access to or alteration of data and/or electronic services.
+topic|identification-credentials|identificationCredentials|Materials used for providing/establishing identification with third parties. Examples include passports, driver licenses and login credentials.
+topic|intellectual-property-copyright-materials|intellectualPropertyCopyrightMaterials|Otherwise lawful materials stored, transferred or made available without consent of their legal rights holders.
+topic|pornography-adult|pornographyAdult|Lawful, ethical pornography (i.e. involving only consenting adults).
+topic|pornography-child-exploitation|pornographyChild(ChildExploitation)|Child abuse materials (aka child pornography), including 'fantasy' fiction materials, CGI. Also includes the provision/offering of child abuse materials and/or activities
+topic|pornography-illicit-or-illegal|pornographyIllicitOrIllegal|Illegal pornography NOT including children/child abuse. Includes bestiality, stolen/revenge porn, hidden cameras etc.
+topic|search-engine-index|searchEngineIndex|Site providing links/references to other sites/services. Referred to as a ‘nexus’ by (Moore and Rid, 2016)
+topic|unclear|unclear|Unable to completely establish topic of material.
+topic|extremism|extremism|Illegal or ‘of concern’ levels of extremist ideology. Note this does not provide blanket coverage of fundamentalist ideologies and dogma - only those associated with illegal acts. Socialist/anarchist/religious materials (for example) will not be included unless inclusive or indicative of associated illegal conduct, such as hate crimes.
+topic|violence|violence|Materials relating to violence against persons or property.
+topic|weapons|weapons|Materials specifically associated with materials and/or items for use in violent acts against persons or property. Examples include firearms and bomb-making ingredients.
+topic|softwares|softwares|Illegal or armful software distribution
+topic|counteir-feit-materials|counterFeitMaterials|Fake identification papers.
+topic|gambling|gambling|Games involving money
+topic|library|library|Library or list of books
+topic|other-not-illegal|otherNotIllegal|Material not of interest to law enforcement - e.g. personal sites, Facebook mirrors.
+topic|legitimate|legitimate|Legitimate websites
+topic|chat|chatsPlatforms|Chats space or equivalent, which are not forums
+topic|mixer|mixer|Anonymization tools for crypto-currencies transactions
+topic|mystery-box|mysteryBox|Mystery Box seller
+topic|anonymizer|anonymizer|Anonymization tools
+topic|vpn-provider|vpnProvider|Provides VPN services and related
+topic|email-provider|emailProvider|Provides e-mail services and related
+topic|ponies|ponies|self-explanatory. It's ponies
+topic|games|games|Flash or online games
+topic|parody|parodyOrJoke|Meme, Parody, Jokes, Trolling, ...
+topic|whistleblower|whistleblower|Exposition and sharing of confidential information with protection of the witness in mind
+topic|ransomware-group|ransomwareGroup|Ransomware group PR or leak website
+motivation|education-training|educationTraining|Materials providing instruction - e.g. ‘how to’ guides
+motivation|wiki|wiki|Wiki pages, documentation and information display
+motivation|forum|forum|Sites specifically designed for multiple users to communicate as peers
+motivation|file-sharing|fileSharing|General file sharing, typically (but not limited to) movie/image sharing
+motivation|hosting|hosting|Hosting providers, e-mails, websites, file-storage etc.
+motivation|ddos-services|ddosServices|Stresser, Booter, DDoSer, DDoS as a Service provider, DDoS tools, etc.
+motivation|general|general|Materials not covered by the other motivations. Typically, materials of a nature not of interest to law enforcement.  For example, personal biography sites.
+motivation|information-sharing-reportage|InformationSharingReportage|Journalism/reporting on topics. Can include biased coverage, but obvious propaganda materials are covered by Recruitment/Advocacy.
+motivation|scam|scam|Intentional confidence trick to fraud people or group of people
+motivation|political-speech|politicalSpeech|Political, activism, without extremism.
+motivation|conspirationist|conspirationist|Conspirationist content, fake news, etc.
+motivation|hate-speech|hateSpeech|Racism, violent, hate... speech.
+motivation|religious|religious|Religious, faith, doctrinal related content.
+motivation|marketplace-for-sale|marketplaceForSale|Services/goods for sale, regardless of means of payment.
+motivation|smuggling|smuggling|Information or trading of wild animals, prohibited goods, ... 
+motivation|recruitment-advocacy|recruitmentAdvocacy|Propaganda
+motivation|system-placeholder|systemPlaceholder|Automatically generated content, not designed for any identifiable purpose other than diagnostics - e.g. “It Works” message provided by default by Apache2
+motivation|unclear|unclear|Unable to completely establish motivation of material.
+structure|incomplete|incomplete|Websites and pages that are unable to load completely properly
+structure|captcha|captcha|Captchas and solvers elements
+structure|login-forms|loginForms|Authentication pages, login page, login forms that block access to an internal part of a website.
+structure|contact-forms|contactForms|Forms to perform a contact request, send an e-mail, fill information, enter a password, ...
+structure|encryption-keys|encryptionKeys|e.g. PGP Keys, passwords, ...
+structure|police-notice|policeNotice|Closed websites, with police-equivalent banners
+structure|legal-statement|legalStatement|RGPD statement, Privacy-policy, guidelines of a websites or forum...
+structure|test|test|Test websites without any real consequences or effects
+structure|videos|videos|Videos and streaming
+structure|unclear|unclear|Unable to completely establish structure of material.
+service|url|url|Uniform Resource Locator (URL) of a dark-web. The url should indicate a protocol (http), a hostname (www.example.com), and a file name (index.html). Example: http://www.example.com/index.html
+service|content-type|contentType|Content-Type representaton headerused to indicate the original media type of the resource (prior to any content encoding applied for sending). https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+service|path|path|The URL path is the string of information that comes after the top level domain name 
+service|detection-date|detectionDate|Date in which the dark-web was detected. The date should be in ISO 8601 format. Example: 2019-01-01T00:00:00Z
+service|network-protocol|networkProtocol|Network protocol used to access the dark-web site (e.g., HTTP, HTTPS)
+service|port|port|Port number where the dark-web service is being offered
+service|network|network|Overlay network  (darknet) that host the service or content
+service|found-at|foundAt|Domain or service where the dark-web where found at
+content|sha1sum|sha1sum|SHA-1 (Secure Hash Algorithm 1) hash of the HTML or objectName content
+content|sha256sum|sha256sum|SHA-256 hash of the HTML or objectName content
+content|ssdeep|ssdeep|ssdeep fuzzy hash of the HTML or objectName content
+content|language|language|Detected language of the service in ISO 639‑1 Code. Example: en
+content|html|html|HyperText Markup Language (HTML) used in a website
+content|css|css|CSS (Cascading Style Sheets) used in a dark-web site
+content|text|text|Content of the dark-web service without HTML tags
+content|page-title|pageTitle|HTML <title> tag content of a dark-web site
+content|phone-number|phoneNumber|Phone number identified in the dark-web site
+content|creditCard|creditCard|Credit card identified in the dark-web site
+content|email|email|Email address identified in the dark-web site
+content|pgp-public-key-block|pgpPublicKeyBlock|PGP public key block identified in the dark-web site

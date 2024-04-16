@@ -4,6 +4,7 @@ pip3 install python-magic lief pydeep2
 # PyMISP
 pushd PyMISP
 pip3 install -e .
+git clone https://github.com/viper-framework/viper-test-files.git tests/viper-test-files
 popd
 
 # PyTaxonomies
