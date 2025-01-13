@@ -33,7 +33,7 @@ dns_filters = (
 http_filters = (
     'http', 'http.request.method', 'http.host', 'http.content_type',
     'http.cookie', 'http.referer', 'http.request.full_uri', 'http.request.uri',
-    'http.user_agent', 'http.response_for.uri', 'http.file_data', 'frame.number'
+    'http.user_agent', 'http.file_data', 'frame.number'
 )
 
 # MISP object relations lists and mappings
@@ -165,7 +165,7 @@ def parse_pcaps(args):
             http_request = misp_event.add_object(name='http-request')
             http_request.add_attribute('ip-src', ip_src)
             http_request.add_attribute('ip-dst', ip_dst)
-            for relation, value in zip(HTTP_REQUEST_OBJECT_RELATIONS, fields[11:-2]):
+            for relation, value in zip(HTTP_REQUEST_OBJECT_RELATIONS, fields[12:-2]):
                 if value:
                     http_request.add_attribute(relation, value)
             http_request.add_reference(file_object.uuid, 'included-in')
