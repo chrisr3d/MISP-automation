@@ -35,7 +35,7 @@ dns_filters = (
 http_filters = (
     'http', 'http.request.method', 'http.host', 'http.content_type',
     'http.cookie', 'http.referer', 'http.request.full_uri', 'http.request.uri',
-    'http.user_agent', 'http.file_data'
+    'http.user_agent', 'http.file_data', 'frame.number'
 )
 
 # MISP object relations lists and mappings
@@ -80,12 +80,19 @@ def parse_pcap_info_line(line: str) -> tuple:
     return re.split(r': +', line)
 
 
+def set_payload_name(uri: str, frame_number: str) -> str:
+    filename = uri.split('/')[-2 if uri.endswith('/') else -1]
+    if filename:
+        return filename
+    return f'payload_from_packet_{frame_number}'
+
+
 def parse_pcaps(args):
     
     connections = {}
     http_requests = defaultdict(list)
     misp_event = MISPEvent()
-    misp_event.info = f'PCAP parsing of the file {args.input}'
+    misp_event.info = f'PCAP parsing of the file {args.input.name}'
 
     # We can start by extracting the information about the PCAP file itself
     file_object = FileObject(filepath=args.input, standalone=False)
@@ -156,7 +163,7 @@ def parse_pcaps(args):
         # We parse the http requests and store the reference to the created
         # MISP object so we can generate a reference between the `network-connection``
         # object related to the IP addresses and the `http-request` object
-        http, *_, response_uri, _, file_data = fields[11:]
+        http, *_, response_uri, _, file_data, frame_number = fields[11:]
         if http == 'http':
             http_request = misp_event.add_object(name='http-request')
             http_request.add_attribute('ip-src', ip_src)
@@ -169,10 +176,10 @@ def parse_pcaps(args):
 
             # We extract the file data from the http layer and generate MISP objects
             if file_data:
-                filename = response_uri.split('/')[-2 if response_uri.endswith('/') else -1]
                 payload, executable, sections = make_binary_objects(
                     pseudofile=BytesIO(binascii.unhexlify(file_data)),
-                    filename=filename, standalone=False
+                    filename=set_payload_name(response_uri, frame_number),
+                    standalone=False
                 )
                 misp_event.add_object(payload)
                 http_request.add_reference(payload.uuid, 'drops')
@@ -209,7 +216,7 @@ def parse_pcaps(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert network data from PCAP files to MISP')
     
-    parser.add_argument('-i', '--input', required=True, help='PCAP input files to parse')
+    parser.add_argument('-i', '--input', type=Path, required=True, help='PCAP input files to parse')
     parser.add_argument('-o', '--outputpath', default=default_path, help='Output path to store the MISP JSON format results')
 
     args = parser.parse_args()
