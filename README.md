@@ -35,39 +35,48 @@ In order to follow along on your computer:
 pip3 install notebook
 ```
 
-### Installation of PyMISP
+### Installation of the required libraries
 
+#### Requirements
+
+To make sure the package required for pydeep is installed, you should run:
 ```bash
-pushd PyMISP
-pip3 install -e .
-popd
-
-# To make sure the package required for pydeep is installed
 sudo apt-get install -y libfuzzy-dev
+```
+
+Alternatively, if you are a MacOS user, run the following:
+```bash
+source fixMacOSfuzzy.sh
+```
+
+#### Quick install
+
+Once you have the required dependencies, you can install PyMISP, PyMISPGalaxies and PyTaxonomies all at once using the following install script:
+```bash
+./install.sh
+```
+
+#### Detailed install
+
+Alternatively, if you're only interested in one of the libraries, or you want to install them yourself, here is the detailed process from which you can choose the libraries you're interested in:
+```bash
+pip3 install -e PyMISP
 
 # In order to be able to use the additional PyMISP helpers
-pip3 install python-magic lief git+https://github.com/kbandla/pydeep.git
-```
+pip3 install python-magic lief pydeep2
 
-### Installation of PyTaxonomies
+pip3 install PyMISPGalaxies
 
-```bash
-pushd PyTaxonomies
-pip3 install .
-popd
-```
-
-### Installation of PyMISPGalaxies
-
-```bash
-pushd PyMISPGalaxies
-pip3 install .
-popd
+pip3 install PyTaxonomies
 ```
 
 ## Usage
+
+You can then run Jupyter and access the notebooks
 
 ```bash
 cd notebooks
 jupyter-notebook
 ```
+
+Please make sure you installed the python libraries related to the notebook you want to explore
