@@ -57,7 +57,7 @@ Another kind of information we could find in our network captures is the HTTP re
 #### 5- Extract payloads
 
 It is also possible to extract the payloads from the HTTP packets:
-- the field you are looking for is `http.
+- the field you are looking for is `http.file_data`
 - you can use the PyMISP helpers such as `make_binary_object` to generate MISP objects for you
   - `make_binary_object` can take the payload's file name or the payload itself as bytes
   - in order to pass the payload directly, encode it in a `BytesIO` object

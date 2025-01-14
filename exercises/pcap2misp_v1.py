@@ -1,7 +1,13 @@
 import argparse
+import binascii
+import json
+import re
 import subprocess
+from collections import defaultdict
+from io import BytesIO
 from pathlib import Path
-from pymisp import MISPEvent, MISPAttribute, MISPObject, PyMISP
+from pymisp import MISPEvent, PyMISP
+from pymisp.tools import FileObject, make_binary_objects
 
 default_path = Path(__file__).resolve().parent / 'data'
 
@@ -24,6 +30,20 @@ standard_filters = (
 
 # MISP object relations lists and mappings
 CONNECTION_OBJECT_RELATIONS = ('ip-src', 'ip-dst', 'src-port', 'dst-port')
+DNS_RECORDS_OBJECT_RELATIONS = (
+    'queried-domain', 'a-record', 'aaaa-record', 'cname-record', 'mx-record',
+    'ns-record', 'ptr-record', 'soa-record', 'spf-record', 'srv-record'
+)
+HTTP_REQUEST_OBJECT_RELATIONS = (
+    'method', 'host', 'content-type', 'cookie', 'referer', 'url', 'uri',
+    'user-agent'
+)
+PCAP_METADATA_OBJECT_MAPPING = {
+    'Capture length': 'capture-length',
+    'File encapsulation': 'protocol',
+    'First packet time': 'first-packet-seen',
+    'Last packet time': 'last-packet-seen'
+}
 
 
 def define_command(input_file: Path, filters: tuple) -> str:
@@ -44,11 +64,24 @@ def handle_protocols(frame_protocols: str) -> list:
     return protocol_key
 
 
+def parse_pcap_info_line(line: str) -> tuple:
+    if ' = ' in line:
+        return line.split(' = ')
+    return re.split(r': +', line)
+
+
+def set_payload_name(uri: str, frame_number: str) -> str:
+    filename = uri.split('/')[-2 if uri.endswith('/') else -1]
+    if filename:
+        return filename
+    return f'payload_from_packet_{frame_number}'
+
+
 def parse_pcaps(args):
     
     connections = {}
     misp_event = MISPEvent()
-    misp_event.info = f'PCAP parsing of the file {args.input}'
+    misp_event.info = f'PCAP parsing of the file {args.input.name}'
 
     # We call the tshark command
     cmd = define_command(args.input, standard_filters)
@@ -98,7 +131,7 @@ def parse_pcaps(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert network data from PCAP files to MISP')
     
-    parser.add_argument('-i', '--input', required=True, help='PCAP input files to parse')
+    parser.add_argument('-i', '--input', type=Path, required=True, help='PCAP input files to parse')
     parser.add_argument('-o', '--outputpath', default=default_path, help='Output path to store the MISP JSON format results')
 
     args = parser.parse_args()
