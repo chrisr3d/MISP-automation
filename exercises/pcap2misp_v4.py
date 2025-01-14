@@ -1,10 +1,13 @@
 import argparse
+import binascii
+import json
 import re
 import subprocess
 from collections import defaultdict
+from io import BytesIO
 from pathlib import Path
-from pymisp import MISPEvent, MISPAttribute, MISPObject, PyMISP
-from pymisp.tools import FileObject
+from pymisp import MISPEvent, PyMISP
+from pymisp.tools import FileObject, make_binary_objects
 
 default_path = Path(__file__).resolve().parent / 'data'
 

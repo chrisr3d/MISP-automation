@@ -1,9 +1,13 @@
 import argparse
+import binascii
+import json
 import re
 import subprocess
+from collections import defaultdict
+from io import BytesIO
 from pathlib import Path
-from pymisp import MISPEvent, MISPAttribute, MISPObject, PyMISP
-from pymisp.tools import FileObject
+from pymisp import MISPEvent, PyMISP
+from pymisp.tools import FileObject, make_binary_objects
 
 default_path = Path(__file__).resolve().parent / 'data'
 
@@ -26,6 +30,14 @@ standard_filters = (
 
 # MISP object relations lists and mappings
 CONNECTION_OBJECT_RELATIONS = ('ip-src', 'ip-dst', 'src-port', 'dst-port')
+DNS_RECORDS_OBJECT_RELATIONS = (
+    'queried-domain', 'a-record', 'aaaa-record', 'cname-record', 'mx-record',
+    'ns-record', 'ptr-record', 'soa-record', 'spf-record', 'srv-record'
+)
+HTTP_REQUEST_OBJECT_RELATIONS = (
+    'method', 'host', 'content-type', 'cookie', 'referer', 'url', 'uri',
+    'user-agent'
+)
 PCAP_METADATA_OBJECT_MAPPING = {
     'Capture length': 'capture-length',
     'File encapsulation': 'protocol',

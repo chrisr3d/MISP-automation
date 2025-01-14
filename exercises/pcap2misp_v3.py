@@ -1,9 +1,13 @@
 import argparse
+import binascii
+import json
 import re
 import subprocess
+from collections import defaultdict
+from io import BytesIO
 from pathlib import Path
-from pymisp import MISPEvent, MISPAttribute, MISPObject, PyMISP
-from pymisp.tools import FileObject
+from pymisp import MISPEvent, PyMISP
+from pymisp.tools import FileObject, make_binary_objects
 
 default_path = Path(__file__).resolve().parent / 'data'
 
@@ -34,6 +38,10 @@ CONNECTION_OBJECT_RELATIONS = ('ip-src', 'ip-dst', 'src-port', 'dst-port')
 DNS_RECORDS_OBJECT_RELATIONS = (
     'queried-domain', 'a-record', 'aaaa-record', 'cname-record', 'mx-record',
     'ns-record', 'ptr-record', 'soa-record', 'spf-record', 'srv-record'
+)
+HTTP_REQUEST_OBJECT_RELATIONS = (
+    'method', 'host', 'content-type', 'cookie', 'referer', 'url', 'uri',
+    'user-agent'
 )
 PCAP_METADATA_OBJECT_MAPPING = {
     'Capture length': 'capture-length',
@@ -105,7 +113,7 @@ def parse_pcaps(args):
 
     # We read the results of the tshark command on the stdout channel
     for line in proc.stdout.readlines():
-        timestamp, ip_src, ip_dst, ts_port, td_port, us_port, ud_port, protocols, *dns = line.decode().strip('\n').split('|')
+        timestamp, ip_src, ip_dst, ts_port, td_port, us_port, ud_port, protocols, *fields = line.decode().strip('\n').split('|')
 
         # We store the connection information
         key = (
@@ -125,9 +133,9 @@ def parse_pcaps(args):
         connections[key]['counter'] += 1
 
         # We parse the dns record data
-        if 'dns' in protocols and 'response' in dns[0]:
+        if 'dns' in protocols and 'response' in fields[0]:
             dns_record = misp_event.add_object(name='dns-record')
-            for relation, values in zip(DNS_RECORDS_OBJECT_RELATIONS, dns[1:]):
+            for relation, values in zip(DNS_RECORDS_OBJECT_RELATIONS, fields[1:]):
                 if values:
                     if ',' in values:
                         for value in values.split(','):

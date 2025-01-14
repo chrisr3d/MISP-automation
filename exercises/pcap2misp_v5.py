@@ -1,10 +1,12 @@
 import argparse
+import binascii
+import json
 import re
 import subprocess
 from collections import defaultdict
 from io import BytesIO
 from pathlib import Path
-from pymisp import MISPEvent, MISPAttribute, MISPObject, PyMISP
+from pymisp import MISPEvent, PyMISP
 from pymisp.tools import FileObject, make_binary_objects
 
 default_path = Path(__file__).resolve().parent / 'data'
@@ -33,7 +35,7 @@ dns_filters = (
 http_filters = (
     'http', 'http.request.method', 'http.host', 'http.content_type',
     'http.cookie', 'http.referer', 'http.request.full_uri', 'http.request.uri',
-    'http.user_agent', 'http.file_data', 'frame.number'
+    'http.user_agent', 'http.file_data'
 )
 
 # MISP object relations lists and mappings
@@ -76,12 +78,6 @@ def parse_pcap_info_line(line: str) -> tuple:
     if ' = ' in line:
         return line.split(' = ')
     return re.split(r': +', line)
-
-
-def set_payload_name(response_uri: str, frame_number: str) -> str:
-    if response_uri.endswith('/') or '.' not in response_uri.split('/')[-1]:
-        return f'payload_from_packet{frame_number}'
-    return response_uri.split('/')[-2 if response_uri.endswith('/') else -1]
 
 
 def parse_pcaps(args):
@@ -160,7 +156,7 @@ def parse_pcaps(args):
         # We parse the http requests and store the reference to the created
         # MISP object so we can generate a reference between the `network-connection``
         # object related to the IP addresses and the `http-request` object
-        http, *_, response_uri, file_data, frame_number = fields[11:]
+        http, *_, response_uri, _, file_data = fields[11:]
         if http == 'http':
             http_request = misp_event.add_object(name='http-request')
             http_request.add_attribute('ip-src', ip_src)
@@ -173,11 +169,10 @@ def parse_pcaps(args):
 
             # We extract the file data from the http layer and generate MISP objects
             if file_data:
-                filename = set_payload_name(response_uri, frame_number)
+                filename = response_uri.split('/')[-2 if response_uri.endswith('/') else -1]
                 payload, executable, sections = make_binary_objects(
-                    pseudofile=BytesIO(file_data.replace(':', '').encode()),
-                    filename=filename,
-                    standalone=False
+                    pseudofile=BytesIO(binascii.unhexlify(file_data)),
+                    filename=filename, standalone=False
                 )
                 misp_event.add_object(payload)
                 http_request.add_reference(payload.uuid, 'drops')
