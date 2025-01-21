@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Training - Using the API in MISP</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>2a_PyMISP_API_Introduction</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7516,7 +7516,21 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Notebook-trainer-cheatsheet:-API-and-CLI">Notebook trainer cheatsheet: API and CLI<a class="anchor-link" href="#Notebook-trainer-cheatsheet:-API-and-CLI">¶</a></h1>
+<h1 id="Initializing-your-environment">Initializing your environment<a class="anchor-link" href="#Initializing-your-environment">¶</a></h1><h2 id="Setting-up-a-virtual-environment">Setting up a virtual environment<a class="anchor-link" href="#Setting-up-a-virtual-environment">¶</a></h2><p>(Optional but recommended)</p>
+<div class="highlight"><pre><span></span>virtualenv<span class="w"> </span>-p<span class="w"> </span>python3<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</pre></div>
+<p>(Use <code>deactivate</code> to exit from <code>source</code> once you are done)</p>
+<p>Alternatively you can also prefix all your <code>python</code> and <code>pip</code> commands with <code>./venv/bin/</code> (e.g: <code>./venv/bin/pip3 install -U pip</code>)</p>
+<h2 id="Setting-up-Jupyter">Setting up Jupyter<a class="anchor-link" href="#Setting-up-Jupyter">¶</a></h2><p>In order to follow along on your computer:</p>
+<div class="highlight"><pre><span></span>pip3<span class="w"> </span>install<span class="w"> </span>notebook
+jupyter-notebook
+</pre></div>
+<h2 id="Installation-of-PyMISP">Installation of PyMISP<a class="anchor-link" href="#Installation-of-PyMISP">¶</a></h2><h4 id="Make-sure-the-submodules-are-up-to-date-and-cloned">Make sure the submodules are up-to-date and cloned<a class="anchor-link" href="#Make-sure-the-submodules-are-up-to-date-and-cloned">¶</a></h4><div class="highlight"><pre><span></span>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive<span class="w"> </span>PyMISP/
+</pre></div>
+<h4 id="Install-PyMISP-with-the-developer-options">Install PyMISP with the developer options<a class="anchor-link" href="#Install-PyMISP-with-the-developer-options">¶</a></h4><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>PyMISP
+pip3<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
 </div>
 </div>
 </div>
@@ -7527,42 +7541,15 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<ul>
-<li>Automation page</li>
-<li>Recovering the API KEY (Automation page, User page, RestClient)</li>
+<h1 id="Interacting-with-your-MISP-instance">Interacting with your MISP instance<a class="anchor-link" href="#Interacting-with-your-MISP-instance">¶</a></h1><h3 id="Recovering-your-API-key">Recovering your API key<a class="anchor-link" href="#Recovering-your-API-key">¶</a></h3><ul>
+<li>Go to <code>Global Actions</code> then <code>My profile</code></li>
+<li>Alternatively, access the <code>/users/view/me</code> URL of your MISP instance</li>
 </ul>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Important-notice">Important notice<a class="anchor-link" href="#Important-notice">¶</a></h2><p>This notebook various usage of the MISP restAPI.</p>
-<p>It should be noted that PyMISP is not required to use the MISP restAPI. We are using PyMISP only to parse the response and inspect the data. So any HTTP client such as curl could do the job a described below.</p>
-<p>This command:</p>
-<pre><code>misp_url = URL + '/events/add'
-relative_path = ''
-
-body = {
-    "info": "Event"
-}
-
-misp = ExpandedPyMISP(misp_url, AUTHKEY, False)
-res = misp.direct_call(relative_path, body)
-print_result(res)
-</code></pre>
-<p>Will yield the same result as this command:</p>
-<pre><code>!curl \
- -d '{"info": "Event"}' \
- -H "Authorization: ptU1OggdiLLWlwHPO9B3lzpwEND3hL7gH0uEsyYL" \
- -H "Accept: application/json" \
- -H "Content-type: application/json" \
- -X POST 127.0.0.1:8080/events/restSearch
-</code></pre>
+<h2 id="Initializing-the-variables">Initializing the variables<a class="anchor-link" href="#Initializing-the-variables">¶</a></h2><p>We need to set a few variables:</p>
+<ul>
+<li>The URL of the MISP instance</li>
+<li>Your API key</li>
+</ul>
 </div>
 </div>
 </div>
