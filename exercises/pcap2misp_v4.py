@@ -93,6 +93,7 @@ def parse_pcaps(args):
     http_requests = defaultdict(list)
     misp_event = MISPEvent()
     misp_event.info = f'PCAP parsing of the file {args.input.name}'
+    misp_event.distribution = args.distribution
 
     # We can start by extracting the information about the PCAP file itself
     file_object = FileObject(filepath=args.input, standalone=False)
@@ -202,6 +203,17 @@ if __name__ == '__main__':
     
     parser.add_argument('-i', '--input', type=Path, required=True, help='PCAP input files to parse')
     parser.add_argument('-o', '--outputpath', default=default_path, help='Output path to store the MISP JSON format results')
+    parser.add_argument(
+        '-d', '--distribution', type=int, default=0, choices=[0, 1, 2, 3],
+        help='''
+            Distribution level for the imported MISP content (default is 0)
+              - 0: Your organisation only
+              - 1: This community only
+              - 2: Connected communities
+              - 3: All communities
+            (For simplification purposes, we skip the "Sharing group" distribution level)
+            '''
+    )
 
     args = parser.parse_args()
     args.input = Path(args.input).resolve()
