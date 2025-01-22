@@ -5,22 +5,21 @@ from zipfile import ZipFile
 current_path = Path(__file__).resolve().parent
 
 filenames = (
-    '2024-01-19-GootLoader-infection-traffic.pcap',
-    '2024-01-23-UltraVNC-infection-traffic.pcap',
-    '2024-01-30-DarkGate-infection-traffic.pcap'
+    '2025-01-09-CVE-2017-0199-XLS-to-DBatLoader-or-GuLoader-for-AgentTesla-variant.pcap',
+    '2025-01-13-KongTuke-leads-to-infection-abusing-BOINC.pcap'
 )
 
-name = 'traffic-analysis'
+base_url = 'https://www.malware-traffic-analysis.net'
 for filename in filenames:
     yyyy, mm, dd = filename.split('-')[:3]
     zipped = current_path / 'data' / f'{filename}.zip'
     if zipped.exists():
         print(f'data/{filename}.zip already downloaded')
     else:
-        url = f'https://www.malware-{name}.net/{yyyy}/{mm}/{dd}/{filename}'
+        url = f'{base_url}/{yyyy}/{mm}/{dd}/{filename}.zip'
         response = requests.get(url)
         if response.status_code == 200:
-            with open(current_path / 'data' / filename, 'wb') as f:
+            with open(zipped, 'wb') as f:
                 f.write(response.content)
             print(f'data/{filename}.zip - Successfully downloaded')
         else:
