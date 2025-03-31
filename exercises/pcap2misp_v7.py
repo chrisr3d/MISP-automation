@@ -224,7 +224,7 @@ def parse_pcaps(args):
         if 'http' in connection and (connection[0], connection[1]) in http_requests:
             for referenced_uuid in http_requests[(connection[0], connection[1])]:
                 misp_object.add_reference(referenced_uuid, 'contains')
-    output_filename = f"{'.'.join(args.input.name.split('.')[:-1])}.v6.misp.json"
+    output_filename = f"{'.'.join(args.input.name.split('.')[:-1])}.v7.misp.json"
     with open(args.outputpath / output_filename, 'wt', encoding='utf-8') as f:
         f.write(misp_event.to_json(indent=4))
     print(f'{args.input} successfully parsed - MISP format results extracted in {args.outputpath / output_filename}')
