@@ -23,7 +23,7 @@ layer7_protocols = {
 # Tshark filters
 connection_fields = (
     'frame.time_epoch', 'ip.src', 'ip.dst', 'tcp.srcport', 'tcp.dstport',
-    'udp.srcport', 'udp.dstport', 'frame.protocols'
+    'udp.srcport', 'udp.dstport', 'frame.protocols', 'communityid'
 )
 dns_fields = (
     'dns', 'dns.qry.name', 'dns.a', 'dns.aaaa', 'dns.cname',
@@ -37,7 +37,11 @@ http_fields = (
 )
 
 # MISP object relations lists and mappings
-CONNECTION_OBJECT_RELATIONS = ('ip-src', 'ip-dst', 'src-port', 'dst-port')
+CONNECTION_OBJECT_RELATIONS = (
+    'community-id', 'ip-src', 'ip-dst', 'src-port', 'dst-port',
+    'first-packet-seen', 'last-packet-seen', 'dst-packets-count',
+    'src-packets-count', 'layer3-protocol', 'layer4-protocol'
+)
 DNS_RECORDS_OBJECT_RELATIONS = (
     'queried-domain', 'a-record', 'aaaa-record', 'cname-record', 'mx-record',
     'ns-record', 'ptr-record', 'soa-record', 'spf-record', 'srv-record'
@@ -61,18 +65,21 @@ def define_command(input_file: Path, filters: tuple) -> str:
     return f'{tshark} -r {input_file}'
 
 
-def handle_protocols(frame_protocols: str) -> list:
-    protocol_keys = []
+def handle_protocols(
+        frame_protocols: str, connection: dict = None) -> dict | None:
+    if connection is None:
+        connection = {'layer7-protocol': set()}
+        for protocol in frame_protocols.split(':'):
+            if layer3_protocols.get(protocol) is not None:
+                connection['layer3-protocol'] = layer3_protocols[protocol]
+                continue
+            if layer4_protocols.get(protocol) is not None:
+                connection['layer4-protocol'] = layer4_protocols[protocol]
+        return connection
+    # If we already have a connection, we see if we have a new layer 7 protocol
     for protocol in frame_protocols.split(':'):
-        if protocol in layer3_protocols:
-            protocol_keys.append(layer3_protocols[protocol])
-            continue
-        if protocol in layer4_protocols:
-            protocol_keys.append(layer4_protocols[protocol])
-            continue
-        if protocol in layer7_protocols:
-            protocol_keys.append(layer7_protocols[protocol])
-    return protocol_keys
+        if layer7_protocols.get(protocol) is not None:
+            connection['layer7-protocol'].add(layer7_protocols[protocol])
 
 
 def parse_pcap_info_line(line: str) -> tuple:
@@ -131,25 +138,35 @@ def parse_pcaps(args):
 
     # We read the results of the tshark command on the stdout channel
     for line in proc.stdout.readlines():
-        timestamp, ip_src, ip_dst, ts_port, td_port, us_port, ud_port, protocols, *fields = line.decode().strip('\n').split('|')
+        (timestamp, ip_src, ip_dst, ts_port, td_port, us_port, ud_port,
+         protocols, community_id, *fields) = line.decode().strip('\n').split('|')
 
-        # We store the connection information
-        key = (
-            ip_src, ip_dst,
-            ts_port if ts_port else us_port,
-            td_port if td_port else ud_port,
-            *handle_protocols(protocols)
-        )
-        if key not in connections:
-            connections[key] = {
-                'first_seen': float('inf'),
-                'last_seen': 0.0
+        # We use the community ID as key and we store the other field values
+        if community_id not in connections:
+            # we directly store object relations as keys of the dictionary
+            connections[community_id] = {
+                'community-id': community_id,
+                'ip-src': ip_src, 'ip-dst': ip_dst,
+                'src-port': ts_port if ts_port else us_port,
+                'dst-port': td_port if td_port else ud_port,
+                'first-packet-seen': float('inf'), 'last-packet-seen': 0.0,
+                'src-packets-count': 0, 'dst-packets-count': 0,
+                **handle_protocols(protocols)
             }
+
+        # The we update the connection information - timestamps & counters
+        connection = connections[community_id]
         timestamp = float(timestamp)
-        if timestamp < connections[key]['first_seen']:
-            connections[key]['first_seen'] = timestamp
-        if timestamp > connections[key]['last_seen']:
-            connections[key]['last_seen'] = timestamp
+        if timestamp < connection['first-packet-seen']:
+            connection['first-packet-seen'] = timestamp
+        if timestamp > connection['last-packet-seen']:
+            connection['last-packet-seen'] = timestamp
+        if ip_src == connection['ip-src'] and ip_dst == connection['ip-dst']:
+            connection['dst-packets-count'] += 1
+        else:
+            connection['src-packets-count'] += 1
+        # We handle the layer 7 protocols separately
+        handle_protocols(protocols, connection)
 
         # We parse the dns record data
         if 'dns' in protocols and 'response' in fields[0]:
@@ -194,26 +211,34 @@ def parse_pcaps(args):
 
     # Once we've processed the packets and grouped what had to be grouped,
     # we can now build the MISP `network-connection` objects
-    for connection, values in connections.items():
+    for connection in connections.values():
         misp_object = misp_event.add_object(name='network-connection')
-        for value, relation in zip(connection[:4], CONNECTION_OBJECT_RELATIONS):
-            if value:
-                misp_object.add_attribute(relation, value)
-        for protocol in connection[4:]:
-            layer = 3 if protocol in layer3_protocols else 4 if protocol in layer4_protocols else 7
-            misp_object.add_attribute(f'layer{layer}-protocol', protocol)
-        misp_object.add_attribute('first-packet-seen', values['first_seen'])
-        misp_object.add_attribute('last-packet-seen', values['last_seen'])
+        # as we stored the object relations, we can directly use them to add attributes
+        for relation in CONNECTION_OBJECT_RELATIONS:
+            misp_object.add_attribute(relation, connection[relation])
+        for protocol in connection['layer7-protocol']:
+            misp_object.add_attribute('layer7-protocol', protocol)
         misp_object.add_reference(file_object.uuid, 'included-in')
         # We check if this is an HTTP connection and there is an existing
         # reference to an `http-request` MISP object
         if 'http' in connection and (connection[0], connection[1]) in http_requests:
             for referenced_uuid in http_requests[(connection[0], connection[1])]:
                 misp_object.add_reference(referenced_uuid, 'contains')
-    output_filename = f"{'.'.join(args.input.name.split('.')[:-1])}.v5.misp.json"
+    output_filename = f"{'.'.join(args.input.name.split('.')[:-1])}.v6.misp.json"
     with open(args.outputpath / output_filename, 'wt', encoding='utf-8') as f:
         f.write(misp_event.to_json(indent=4))
     print(f'{args.input} successfully parsed - MISP format results extracted in {args.outputpath / output_filename}')
+    if args.misp:
+        with open(Path(__file__).resolve().parent / 'MISP_config.json', 'r') as f:
+            config = json.load(f)
+        try:
+            misp = PyMISP(config['url'], config['automation_key'], config['verify_cert'])
+        except Exception as exception:
+            print(f'An error occurred while connecting to the MISP instance: {exception}')
+            return
+        event = misp.add_event(misp_event, pythonify=True)
+        print(f'Successfully added Event {event.id} to the MISP instance')
+        
 
 
 if __name__ == '__main__':
@@ -232,6 +257,7 @@ if __name__ == '__main__':
             (For simplification purposes, we skip the "Sharing group" distribution level)
             '''
     )
+    parser.add_argument('-m', '--misp', action='store_true', help='Send the MISP event to a MISP instance')
 
     args = parser.parse_args()
     args.input = Path(args.input).resolve()

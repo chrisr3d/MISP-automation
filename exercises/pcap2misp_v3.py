@@ -12,22 +12,20 @@ from pymisp.tools import FileObject, make_binary_objects
 default_path = Path(__file__).resolve().parent / 'data'
 
 # Non exhaustive list of protocols to populate `network-connection` object attributes
-layer3_protocols = (
-    'arp', 'icmp', 'icmpv6', 'ip', 'ipv6'
-)
-layer4_protocols = (
-    'tcp', 'udp'
-)
-layer7_protocols = (
-    'dhcp', 'dns', 'ftp', 'http', 'ntp', 'smtp', 'snmp', 'ssdp', 'tftp'
-)
+layer3_protocols = {'ip': 'IP', 'ipv6': 'IP'}
+layer4_protocols = {'tcp': 'TCP', 'udp': 'UDP'}
+layer7_protocols = {
+    'dhcp': 'DHCP', 'dns': 'DNS', 'ftp': 'FTP', 'http': 'HTTP',
+    'ntp': 'NTP', 'smtp': 'SMTP', 'snmp': 'SNMP', 'ssdp': 'SSDP',
+    'ssl': 'HTTPS', 'tftp': 'TFTP', 'tls': 'HTTPS'
+}
 
 # Tshark filters
-standard_filters = (
+connection_fields = (
     'frame.time_epoch', 'ip.src', 'ip.dst', 'tcp.srcport', 'tcp.dstport',
     'udp.srcport', 'udp.dstport', 'frame.protocols'
 )
-dns_filters = (
+dns_fields = (
     'dns', 'dns.qry.name', 'dns.a', 'dns.aaaa', 'dns.cname',
     'dns.mx.mail_exchange', 'dns.ns', 'dns.ptr.domain_name',
     'dns.soa.rname', 'dns.spf', 'dns.srv.name'
@@ -59,14 +57,17 @@ def define_command(input_file: Path, filters: tuple) -> str:
 
 
 def handle_protocols(frame_protocols: str) -> list:
-    protocols = set(frame_protocols.split(':'))
-    protocol_key = []
-    for layer in (3, 4, 7):
-        for protocol in globals()[f'layer{layer}_protocols']:
-            if protocol in protocols:
-                protocol_key.append(protocol)
-                break
-    return protocol_key
+    protocol_keys = []
+    for protocol in frame_protocols.split(':'):
+        if protocol in layer3_protocols:
+            protocol_keys.append(layer3_protocols[protocol])
+            continue
+        if protocol in layer4_protocols:
+            protocol_keys.append(layer4_protocols[protocol])
+            continue
+        if protocol in layer7_protocols:
+            protocol_keys.append(layer7_protocols[protocol])
+    return protocol_keys
 
 
 def parse_pcap_info_line(line: str) -> tuple:
@@ -114,7 +115,7 @@ def parse_pcaps(args):
     pcap_object.add_reference(file_object.uuid, 'describes')
 
     # We call the tshark command
-    cmd = define_command(args.input, standard_filters + dns_filters)
+    cmd = define_command(args.input, connection_fields + dns_fields)
     proc = subprocess.Popen(
         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -133,12 +134,13 @@ def parse_pcaps(args):
         if key not in connections:
             connections[key] = {
                 'first_seen': float('inf'),
-                'counter': 0
+                'last_seen': 0.0
             }
         timestamp = float(timestamp)
         if timestamp < connections[key]['first_seen']:
             connections[key]['first_seen'] = timestamp
-        connections[key]['counter'] += 1
+        if timestamp > connections[key]['last_seen']:
+            connections[key]['last_seen'] = timestamp
 
         # We parse the dns record data
         if 'dns' in protocols and 'response' in fields[0]:
@@ -161,9 +163,9 @@ def parse_pcaps(args):
                 misp_object.add_attribute(relation, value)
         for protocol in connection[4:]:
             layer = 3 if protocol in layer3_protocols else 4 if protocol in layer4_protocols else 7
-            misp_object.add_attribute(f'layer{layer}-protocol', protocol.upper())
+            misp_object.add_attribute(f'layer{layer}-protocol', protocol)
         misp_object.add_attribute('first-packet-seen', values['first_seen'])
-        misp_object.add_attribute('count', values['counter'])
+        misp_object.add_attribute('last-packet-seen', values['last_seen'])
         misp_object.add_reference(file_object.uuid, 'included-in')
     output_filename = f"{'.'.join(args.input.name.split('.')[:-1])}.v3.misp.json"
     with open(args.outputpath / output_filename, 'wt', encoding='utf-8') as f:
