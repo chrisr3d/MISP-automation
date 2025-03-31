@@ -9,7 +9,7 @@ The process is pretty straight forward:
 - Loop through the packets displayed in the standard output and identify connections
 - The connections information is stored in a dictionary:
   - The key is the tuple `(ip.src, ip.dst, tcp.srcport, tcp.dstport, *frame.protocols)`
-  - We store the timestamp of the first packet seen and the number of similar connections
+  - We store the timestamp of the first and last packets seen
 - We loop through dictionary and create a `network-connection` MISP object for each connection
 - We write the resulting MISP Event in an output file
 
@@ -51,6 +51,7 @@ Another kind of information we could find in our network captures is the HTTP re
   - http.host
   - http.referer
   - http.request.method
+  - http.request.full_uri
   - http.request.uri
   - http.user_agent
 
@@ -63,7 +64,25 @@ It is also possible to extract the payloads from the HTTP packets:
   - `make_binary_object` can take the payload's file name or the payload itself as bytes
   - in order to pass the payload directly, encode it in a `BytesIO` object
 
-#### 6- (Bonus) Share the parsed and converted MISP data in the MISP instance of your choice
+#### 6- Enhance the network connections information extraction
+
+With the 1st version of the script, we store connections based on a tuple - (`ip.src`, `ip.dst`, `srcport`, `dstport`, `*protocols`) - which takes connections as single direction communications. It also separates handshake packets on the transport layer from the packets exchanging content with the application layer.
+
+To avoid this duplication of `network-connection` objects you encode in your MISP event, you will modify the way network connections are stored. For instance, you could apply the following changes:
+- add `communityid` in the list of fields to get with your tshark command
+  - the community id is a field computed from both IP addresses, both ports and the transport layer protocol of a packet
+  - you can use this field as a key of your connections dictionary and store directly the other fields and values.
+- store every protocol you see in a given connection, using the list of protocols by layer, declared at the beginning of the script
+  - there is always only one layer 3 value and one layer 4 value
+  - even though it is not very common, you can observe multiple layer 7 values in one single connection
+  - the idea is to change accordingly the method named `handle_protocols` to store all the protocols
+
+As the objective of the changes here for this section is to store packets in both directions between 2 IP addresses, the first packet will define which address is the source, and the other one will be the destination. We can then add additional information to count the number of packets that are exchanged in both directions:
+- `dst-packets-count` to count packets from source to destination
+- `src-packets-count` to count packets from destination to source
+
+
+#### 7- (Bonus) Share the parsed and converted MISP data in the MISP instance of your choice
 
 Using the config file `MISP_config.json`, connect to your favourite MISP server and push the MISP Event you just created and populated with the parsed network capture data.
 
